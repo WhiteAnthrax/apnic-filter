@@ -76,6 +76,32 @@ my @list_country = (
     "WS\tWestern Samoa", 	#西サモア
     );
 
+sub calc_end_ip {
+    my ($start, $value) = @_;
+    my ($ip1, $ip2, $ip3, $ip4) = split(/\./, $start);
+    ### 2進数化
+    my $ip_num2 = sprintf("%08b%08b%08b%08b", $ip1, $ip2, $ip3, $ip4);
+    ### 10進数化
+    my $ip_num10 = oct "0b" . $ip_num2;
+    ### 加算
+    $ip_num10 = $ip_num10 + $value - 1;
+    ### 2進化
+    my $end_ip_num2 = sprintf("%032b", $ip_num10);
+    ### 分割
+    my $end_ip1_num2 = substr($end_ip_num2, 0, 8);
+    my $end_ip2_num2 = substr($end_ip_num2, 8, 8);
+    my $end_ip3_num2 = substr($end_ip_num2, 16, 8);
+    my $end_ip4_num2 = substr($end_ip_num2, 24, 8);
+    ### 10進化
+    my $end_ip1_num10 = oct "0b" . $end_ip1_num2;
+    my $end_ip2_num10 = oct "0b" . $end_ip2_num2;
+    my $end_ip3_num10 = oct "0b" . $end_ip3_num2;
+    my $end_ip4_num10 = oct "0b" . $end_ip4_num2;
+    ### 完成
+    my $end_ip = $end_ip1_num10 . '.' . $end_ip2_num10 . '.' . $end_ip3_num10 . '.' . $end_ip4_num10;
+    return($end_ip);
+}
+
 foreach my $list (@list_country) {
     chomp($list);
     my ($code, $country) = split(/\t/, $list);
@@ -96,13 +122,13 @@ foreach my $list (@list_country) {
 ### apnicからdelegate listの取得
 print "*** apnicからdelegate listの取得\n";
 if (-f "$dirname/delegated-apnic-latest") {
-    unlink("$dirname/delegated-apnic-latest");
+#    unlink("$dirname/delegated-apnic-latest");
 }
 if (-f "$dirname/delegated-apnic-latest.md5") {
-    unlink("$dirname/delegated-apnic-latest.md5");
+#    unlink("$dirname/delegated-apnic-latest.md5");
 }
-`cd $dirname; /usr/bin/lftpget ftp://ftp.apnic.net/public/apnic/stats/apnic/delegated-apnic-latest`;
-`cd $dirname; /usr/bin/lftpget ftp://ftp.apnic.net/public/apnic/stats/apnic/delegated-apnic-latest.md5`;
+#`cd $dirname; /usr/bin/lftpget ftp://ftp.apnic.net/public/apnic/stats/apnic/delegated-apnic-latest`;
+#`cd $dirname; /usr/bin/lftpget ftp://ftp.apnic.net/public/apnic/stats/apnic/delegated-apnic-latest.md5`;
 
 ### md5のチェック
 print "*** MD5 check\n";
@@ -123,13 +149,8 @@ foreach $line (@list) {
     foreach $country (@deny_country) {
 	chomp($country);
 	if ($country eq $cc) {
-	    $mask = 32;
-	    $x = $value;
-	    while ($x != 1) {
-		$x = $x / 2;
-		$mask--;
-	    }
-	    push @{$addresses->{$country}}, Net::Netmask->new("$start/$mask");
+	    $end_ip = &calc_end_ip($start, $value);
+	    push @{$addresses->{$country}}, Net::Netmask->new("$start - $end_ip");
 	}
     }
 }
@@ -189,3 +210,6 @@ print "\n";
 print "*** 新しいKRFILTERを登録\n";
 #system("sudo /bin/sh $dirname/data/$date");
 print "*** 完了\n";
+
+
+
