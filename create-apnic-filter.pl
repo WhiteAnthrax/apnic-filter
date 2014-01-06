@@ -36,7 +36,7 @@ $allow_list = $config->{allow_country};
 #print "iptables: $iptables\n";
 #print "limit: $limit\n";
 #print "allow_list: ";
-#foreach $list (@allow_list) {
+#foreach $list (@$allow_list) {
 #    chomp($list);
 #    print "$list ";
 #}
@@ -134,7 +134,7 @@ foreach my $list (@list_country) {
     chomp($list);
     my ($code, $country) = split(/\t/, $list);
     my $allow = 0;
-    foreach my $check (@allow_list) {
+    foreach my $check (@$allow_list) {
 	chomp($check);
 	if ($check eq $code) {
 	    $allow = 1;
