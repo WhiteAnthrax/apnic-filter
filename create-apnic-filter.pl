@@ -4,18 +4,46 @@
 #use warnings;
 use Net::Netmask;
 use File::Basename;
-
+use Data::Dumper;
 $| = 1;
 
 my $dirname = dirname(__FILE__);
-my $iptables = '/usr/sbin/iptables';
-my $limit = '-m multiport --dport 22,25,53,80,110,139,143,587,901,993,995,3128,4949';
+
+#my $iptables = '/usr/sbin/iptables';
+#my $limit = '-m multiport --dport 22,25,53,80,110,139,143,587,901,993,995,3128,4949';
 
 ### filterしない国コード
-my @allow_list = (
-    'JP',
-    'AP',
-    );
+#my @allow_list = (
+#    'JP',
+#    'AP',
+#    );
+
+my $config;
+my $conf_file = 'config.ini';
+if (-f "$conf_file") {
+    print "read $conf_file\n";
+    $config = do $conf_file or die "$!$@";
+} else {
+    print "Can't read config.ini\n";
+    exit(1);
+}
+
+$iptables = $config->{iptables};
+$limit = '-m multiport --dport ' . $config->{limit_port};
+$allow_list = $config->{allow_country};
+
+#print Dumper($config);
+#print "iptables: $iptables\n";
+#print "limit: $limit\n";
+#print "allow_list: ";
+#foreach $list (@allow_list) {
+#    chomp($list);
+#    print "$list ";
+#}
+#print "\n";
+#
+#exit(0);
+
 
 my @list_country = (
     "AF\tAfghanistan", 	#アフガニスタン
@@ -209,6 +237,7 @@ print "\n";
 ### FILTER更新
 print "*** 新しいKRFILTERを登録\n";
 #system("sudo /bin/sh $dirname/data/$date");
+print "please run 'sudo /bin/sh $dirname/data/$date'\n";
 print "*** 完了\n";
 
 
