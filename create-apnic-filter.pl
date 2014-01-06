@@ -149,14 +149,14 @@ foreach my $list (@list_country) {
 
 ### apnicからdelegate listの取得
 print "*** apnicからdelegate listの取得\n";
-if (-f "$dirname/delegated-apnic-latest") {
-    unlink("$dirname/delegated-apnic-latest");
-}
-if (-f "$dirname/delegated-apnic-latest.md5") {
-    unlink("$dirname/delegated-apnic-latest.md5");
-}
-`cd $dirname; /usr/bin/lftpget ftp://ftp.apnic.net/public/apnic/stats/apnic/delegated-apnic-latest`;
-`cd $dirname; /usr/bin/lftpget ftp://ftp.apnic.net/public/apnic/stats/apnic/delegated-apnic-latest.md5`;
+#if (-f "$dirname/delegated-apnic-latest") {
+#    unlink("$dirname/delegated-apnic-latest");
+#}
+#if (-f "$dirname/delegated-apnic-latest.md5") {
+#    unlink("$dirname/delegated-apnic-latest.md5");
+#}
+#`cd $dirname; /usr/bin/lftpget ftp://ftp.apnic.net/public/apnic/stats/apnic/delegated-apnic-latest`;
+#`cd $dirname; /usr/bin/lftpget ftp://ftp.apnic.net/public/apnic/stats/apnic/delegated-apnic-latest.md5`;
 
 ### md5のチェック
 print "*** MD5 check\n";
