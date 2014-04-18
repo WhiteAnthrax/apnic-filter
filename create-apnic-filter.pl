@@ -149,14 +149,14 @@ foreach my $list (@list_country) {
 
 ### apnicからdelegate listの取得
 print "*** apnicからdelegate listの取得\n";
-#if (-f "$dirname/delegated-apnic-latest") {
-#    unlink("$dirname/delegated-apnic-latest");
-#}
-#if (-f "$dirname/delegated-apnic-latest.md5") {
-#    unlink("$dirname/delegated-apnic-latest.md5");
-#}
-#`cd $dirname; /usr/bin/lftpget ftp://ftp.apnic.net/public/apnic/stats/apnic/delegated-apnic-latest`;
-#`cd $dirname; /usr/bin/lftpget ftp://ftp.apnic.net/public/apnic/stats/apnic/delegated-apnic-latest.md5`;
+if (-f "$dirname/delegated-apnic-latest") {
+    unlink("$dirname/delegated-apnic-latest");
+}
+if (-f "$dirname/delegated-apnic-latest.md5") {
+    unlink("$dirname/delegated-apnic-latest.md5");
+}
+`cd $dirname; /usr/bin/lftpget ftp://ftp.apnic.net/public/apnic/stats/apnic/delegated-apnic-latest`;
+`cd $dirname; /usr/bin/lftpget ftp://ftp.apnic.net/public/apnic/stats/apnic/delegated-apnic-latest.md5`;
 
 ### md5のチェック
 print "*** MD5 check\n";
@@ -228,7 +228,7 @@ foreach $country (@deny_country) {
     print $fh "echo \"*** iptables 登録中: $country($codehash{$country}) $count address\"\n";
     foreach $line (@aggregated) {
 	chomp($line);
-	print $fh "$iptables -A DENY_FILTER -p tcp -s $line $limit -j $filter_header\n";
+	print $fh "$iptables -w -A DENY_FILTER -p tcp -s $line $limit -j $filter_header\n";
     }
     close $fh;
 }
