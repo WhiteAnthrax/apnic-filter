@@ -122,8 +122,8 @@ my @list_country = (
 "HR\tCroatia", #クロアチア
 "KY\tCayman Islands", #ケイマン諸島
 "KE\tKenya", #ケニア
-"CI\tCôte d'Ivoire", #コートジボワール
-"CC\tCocos (Keeling) Islands", #ココス（キーリング）諸島
+"CI\tCote dIvoire", #コートジボワール
+"CC\tCocos Keeling Islands", #ココス（キーリング）諸島
 "CR\tCosta Rica", #コスタリカ
 "KM\tComoros", #コモロ
 "CO\tColombia", #コロンビア
@@ -137,7 +137,7 @@ my @list_country = (
 "ZM\tZambia", #ザンビア
 "PM\tSaint Pierre and Miquelon", #サンピエール島・ミクロン島
 "SM\tSan Marino", #サンマリノ
-"MF\tSaint Martin (French part)", #サン・マルタン（フランス領）
+"MF\tSaint Martin French part", #サン・マルタン（フランス領）
 "SL\tSierra Leone", #シエラレオネ
 "DJ\tDjibouti", #ジブチ
 "GI\tGibraltar", #ジブラルタル
@@ -146,7 +146,7 @@ my @list_country = (
 "GE\tGeorgia", #ジョージア
 "SY\tSyrian Arab Republic", #シリア・アラブ共和国
 "SG\tSingapore", #シンガポール
-"SX\tSint Maarten (Dutch part)", #シント・マールテン（オランダ領）
+"SX\tSint Maarten Dutch part", #シント・マールテン（オランダ領）
 "ZW\tZimbabwe", #ジンバブエ
 "CH\tSwitzerland", #スイス
 "SE\tSweden", #スウェーデン
@@ -210,7 +210,7 @@ my @list_country = (
 "BH\tBahrain", #バーレーン
 "HT\tHaiti", #ハイチ
 "PK\tPakistan", #パキスタン
-"VA\tHoly See (Vatican City State)", #バチカン市国
+"VA\tHoly See Vatican City State", #バチカン市国
 "PA\tPanama", #パナマ
 "VU\tVanuatu", #バヌアツ
 "BS\tBahamas", #バハマ
@@ -231,7 +231,7 @@ my @list_country = (
 "BV\tBouvet Island", #ブーベ島
 "PR\tPuerto Rico", #プエルトリコ
 "FO\tFaroe Islands", #フェロー諸島
-"FK\tFalkland Islands (Malvinas)", #フォークランド（マルビナス）諸島
+"FK\tFalkland Islands Malvinas", #フォークランド（マルビナス）諸島
 "BR\tBrazil", #ブラジル
 "FR\tFrance", #フランス
 "GF\tFrench Guiana", #フランス領ギアナ
@@ -406,7 +406,7 @@ print "*** リストからアドレスを変換\n";
 foreach $line (@all_list) {
     chomp($line);
     ($registry, $cc, $type, $start, $value, $date, $status, $extensions) = split(/\|/, $line);
-    foreach $country (@deny_country) {
+    foreach $country (@all_country) {
         chomp($country);
         if ($country eq $cc) {
 			#$end_ip = &calc_end_ip($start, $value);
@@ -441,19 +441,32 @@ print $fh "$iptables -X DENY_FILTER\n";
 print $fh "$iptables -N DENY_FILTER\n";
 print $fh "$iptables -I INPUT 1 -m conntrack --ctstate NEW -j DENY_FILTER\n";
 
-foreach $country (@all_country) {
+foreach $country (@deny_country) {
     chomp($country);
     $filter_header = $country . '_DENY';
+    print $fh "echo \"*** FILTER初期化中: $codehash{$country}\"\n";
     print $fh "$iptables -F $filter_header\n";
     print $fh "$iptables -X $filter_header\n";
     print $fh "$iptables -N $filter_header\n";
     print $fh "$iptables -A $filter_header -j LOG --log-prefix='[$codehash{$country}] ' --log-level 5\n";
     print $fh "$iptables -A $filter_header -j DROP\n";
 }
+foreach $country (@$allow_list) {
+    chomp($country);
+    $filter_header = $country . '_ALLOW';
+    print $fh "echo \"*** FILTER初期化中: $codehash{$country}\"\n";
+    print $fh "$iptables -F $filter_header\n";
+    print $fh "$iptables -X $filter_header\n";
+    print $fh "$iptables -N $filter_header\n";
+	#print $fh "$iptables -A $filter_header -j LOG --log-prefix='[$codehash{$country}] ' --log-level 5\n";
+    print $fh "$iptables -A $filter_header -j ACCEPT\n";
+}
+print $fh "$iptables -A OTHER_DENY -j LOG --log-prefix='[OTHER] ' --log-level 5\n";
+print $fh "$iptables -A OTHER_DENY -j DROP\n";
 close $fh;
 
 ### aggregate
-print "*** aggregate中 ***\n";
+print "*** DENY aggregate中 ***\n";
 foreach $country (@deny_country) {
     chomp($country);
     print "$country($codehash{$country})\t";
@@ -464,12 +477,33 @@ foreach $country (@deny_country) {
     $count = scalar(@aggregated);
     print $fh "echo \"*** iptables 登録中: $country($codehash{$country}) $count address\"\n";
     foreach $line (@aggregated) {
-	chomp($line);
-	print $fh "$iptables -w -A DENY_FILTER -p tcp -s $line $limit -j $filter_header\n";
+		chomp($line);
+		print $fh "$iptables -w -A DENY_FILTER -p tcp -s $line $limit -j $filter_header\n";
     }
     close $fh;
 }
 print "\n";
+print "*** ALLOW aggregate中 ***\n";
+foreach $country (@$allow_list) {
+    chomp($country);
+    print "$country($codehash{$country})\t";
+    @aggregated = ();
+    @aggregated = cidrs2cidrs(@{$addresses->{$country}});
+    open my $fh, '>>', "$dirname/data/$date";
+    $filter_header = $country . '_ALLOW';
+    $count = scalar(@aggregated);
+    print $fh "echo \"*** iptables 登録中: $country($codehash{$country}) $count address\"\n";
+    foreach $line (@aggregated) {
+		chomp($line);
+		print $fh "$iptables -w -A DENY_FILTER -p tcp -s $line $limit -j $filter_header\n";
+    }
+    close $fh;
+}
+print "*** other IP DENY ***\n";
+open my $fh, '>>', "$dirname/data/$date";
+print $fh "$iptables -w -A DENY_FILTER -p tcp -s 0.0.0.0/0 $limit -j OTHER_DENY\n";
+close $fh;
+
 
 ### FILTER更新
 print "*** 新しいKRFILTERを登録\n";
