@@ -448,7 +448,7 @@ foreach $country (@deny_country) {
     print $fh "$iptables -F $filter_header\n";
     print $fh "$iptables -X $filter_header\n";
     print $fh "$iptables -N $filter_header\n";
-    print $fh "$iptables -A $filter_header -j LOG --log-prefix='[$codehash{$country}] ' --log-level 5\n";
+    print $fh "$iptables -A $filter_header -j LOG --log-prefix="[$codehash{$country}] " --log-level 5\n";
     print $fh "$iptables -A $filter_header -j DROP\n";
 }
 foreach $country (@$allow_list) {
@@ -458,7 +458,7 @@ foreach $country (@$allow_list) {
     print $fh "$iptables -F $filter_header\n";
     print $fh "$iptables -X $filter_header\n";
     print $fh "$iptables -N $filter_header\n";
-	#print $fh "$iptables -A $filter_header -j LOG --log-prefix='[$codehash{$country}] ' --log-level 5\n";
+	#print $fh "$iptables -A $filter_header -j LOG --log-prefix="[$codehash{$country}] " --log-level 5\n";
     print $fh "$iptables -A $filter_header -j ACCEPT\n";
 }
 print $fh "$iptables -A OTHER_DENY -j LOG --log-prefix='[OTHER] ' --log-level 5\n";
@@ -475,7 +475,7 @@ foreach $country (@deny_country) {
     open my $fh, '>>', "$dirname/data/$date";
     $filter_header = $country . '_DENY';
     $count = scalar(@aggregated);
-    print $fh "echo '*** iptables 登録中: $country($codehash{$country}) $count address'\n";
+    print $fh "echo \"*** iptables 登録中: $country($codehash{$country}) $count address\"\n";
     foreach $line (@aggregated) {
 		chomp($line);
 		print $fh "$iptables -w -A DENY_FILTER -p tcp -s $line $limit -j $filter_header\n";
@@ -492,7 +492,7 @@ foreach $country (@$allow_list) {
     open my $fh, '>>', "$dirname/data/$date";
     $filter_header = $country . '_ALLOW';
     $count = scalar(@aggregated);
-    print $fh "echo '*** iptables 登録中: $country($codehash{$country}) $count address'\n";
+    print $fh "echo \"*** iptables 登録中: $country($codehash{$country}) $count address\"\n";
     foreach $line (@aggregated) {
 		chomp($line);
 		print $fh "$iptables -w -A DENY_FILTER -p tcp -s $line $limit -j $filter_header\n";
