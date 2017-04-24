@@ -166,10 +166,31 @@ if (scalar(@repl) != 1) {
     exit(0);
 }
 
+### ripeからdelegate listの取得
+#print "*** ripeからdelegate listの取得\n";
+#if (-f "$dirname/delegated-ripencc-latest") {
+#    unlink("$dirname/delegated-ripencc-latest");
+#}
+#if (-f "$dirname/delegated-ripencc-latest.md5") {
+#    unlink("$dirname/delegated-ripencc-latest.md5");
+#}
+#`cd $dirname; /usr/bin/lftpget ftp://ftp.ripe.net/pub/stats/ripencc/delegated-ripencc-latest`;
+#`cd $dirname; /usr/bin/lftpget ftp://ftp.ripe.net/pub/stats/ripencc/delegated-ripencc-latest.md5`;
+#
+#### md5のチェック
+#print "*** MD5 check\n";
+#@repl = `cd $dirname; /usr/bin/md5sum -c $dirname/delegated-ripencc-latest.md5`;
+#if (scalar(@repl) != 1) {
+#    print "NG: md5sum error $dirname/delegated-ripencc-latest\n";
+#    exit(0);
+#}
+
 
 ### アドレスブロックを整理
 print "*** リストからアドレスを変換\n";
 @list = `grep ipv4 $dirname/delegated-apnic-latest`;
+#@list2 = `grep ipv4 $dirname/delegated-ripencc-latest`;
+push @list, @list2;
 
 foreach $line (@list) {
     chomp($line);
