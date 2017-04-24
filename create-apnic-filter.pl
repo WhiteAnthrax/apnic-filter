@@ -448,7 +448,7 @@ foreach $country (@deny_country) {
     print $fh "$iptables -F $filter_header\n";
     print $fh "$iptables -X $filter_header\n";
     print $fh "$iptables -N $filter_header\n";
-    print $fh "$iptables -A $filter_header -j LOG --log-prefix="[$codehash{$country}] " --log-level 5\n";
+    print $fh "$iptables -A $filter_header -j LOG --log-prefix=\"[$codehash{$country}] \" --log-level 5\n";
     print $fh "$iptables -A $filter_header -j DROP\n";
 }
 foreach $country (@$allow_list) {
