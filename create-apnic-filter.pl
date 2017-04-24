@@ -439,7 +439,7 @@ print $fh "$iptables -D INPUT -m conntrack --ctstate NEW -j DENY_FILTER\n";
 print $fh "$iptables -F DENY_FILTER\n";
 print $fh "$iptables -X DENY_FILTER\n";
 print $fh "$iptables -N DENY_FILTER\n";
-print $fh "$iptables -I INPUT 1 -m conntrack --ctstate NEW -j DENY_FILTER\n";
+print $fh "$iptables -A INPUT -m conntrack --ctstate NEW -j DENY_FILTER\n";
 
 foreach $country (@deny_country) {
     chomp($country);
