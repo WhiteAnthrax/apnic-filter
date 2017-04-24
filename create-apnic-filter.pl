@@ -475,7 +475,7 @@ foreach $country (@deny_country) {
     open my $fh, '>>', "$dirname/data/$date";
     $filter_header = $country . '_DENY';
     $count = scalar(@aggregated);
-    print $fh "echo \"*** iptables 登録中: $country($codehash{$country}) $count address\"\n";
+    print $fh "echo '*** iptables 登録中: $country($codehash{$country}) $count address'\n";
     foreach $line (@aggregated) {
 		chomp($line);
 		print $fh "$iptables -w -A DENY_FILTER -p tcp -s $line $limit -j $filter_header\n";
