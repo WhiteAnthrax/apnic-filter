@@ -1,9 +1,6 @@
 *~
 \#*#
-delegated-apnic-latest
-delegated-apnic-latest.md5
-delegated-ripencc-latest
-delegated-ripencc-latest.md5
+delegated*
 data
 config.ini
 config.ini.bak
