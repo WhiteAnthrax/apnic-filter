@@ -3,6 +3,7 @@
 #use strict;
 #use warnings;
 use Net::Netmask;
+use Net::IP;
 use File::Basename;
 use Data::Dumper;
 $| = 1;
@@ -46,63 +47,257 @@ $allow_list = $config->{allow_country};
 
 
 my @list_country = (
-    "AF\tAfghanistan", 	#アフガニスタン
-    "AP\tAsia Pacific region", 	#アジア太平洋地域に複数箇所にまたがる物
-    "AS\tAmerican Samoa", 	#サモア
-    "AU\tAustralia", 	#オーストラリア
-    "BD\tBangladesh", 	#バングラディシュ人民共和国
-    "BN\tBrunei Darussalam", 	#ブルネイ・ダルサラーム
-    "BT\tBhutan", 	#ブータン大国
-    "CH\tSwitzland", 	#スイス連邦
-    "CK\tCook Islans", 	#クック諸島
-    "CN\tChina", 	#中華人民共和国
-    "FJ\tFiji", 	#フィージー
-    "FM\tMicronesia", 	#ミクロネシア連邦
-    "GB\tGreat Britain", 	#北部イギリス及び北アイルランド
-    "GU\tGuam", 	#グァム
-    "HK\tHong Kong", 	#香港
-    "ID\tIndonesia", 	#インドネシア共和国
-    "IN\tIndia", 	#インド
-    "IO\tBritish Indian O.Terr.", 	#旧英国領インド
-    "JP\tJapan", 	#日本
-    "KH\tCambodia", 	#カンボジア
-    "KI\tKiribati", 	#キルバス共和国
-    "KR\tSouth Korea", 	#大韓民国(韓国)
-    "LA\tLaos", 	#ラオス人民民主共和国
-    "LK\tSri Lanka", 	#スリランカ民主社会主義共和国
-    "MH\tMarshall Islands", 	#マーシャル諸島共和国
-    "MM\tMyanmar", 	#ミャンマー連邦
-    "MN\tMongolia", 	#モンゴル
-    "MO\tMacau", 	#マカオ
-    "MP\tNorthern Mariana Island", 	#北マリアナ諸島
-    "MU\tMauritius", 	#モーリシャス共和国
-    "MV\tMaldives", 	#モルジブ共和国
-    "MY\tMalaysia", 	#マレーシア
-    "NC\tNew Caledonia", 	#ニューカレドニア
-    "NF\tNorfolk Island", 	#ノーフォーク島
-    "NL\tNetherlands", 	#オランダ王国
-    "NP\tNepal", 	#ネパール王国
-    "NR\tNauru", 	#ナウル共和国
-    "NU\tNiue", 	#ニウーエイ島
-    "NZ\tNew Zealand", 	#ニュージーランド
-    "PF\tPolynesia", 	#ポリナシア
-    "PG\tPapua New Guinea", 	#パプアニューギニア
-    "PH\tPhilippines", 	#フィリピン共和国
-    "PK\tPakistan", 	#パキスタン・イスラム共和国
-    "PW\tPalau", 	#パラオ共和国
-    "SA\tSaudi Arabia", 	#サイジアラビア王国
-    "SB\tSolomon Islands", 	#ソロモン諸島
-    "SE\tSweden", 	#スウェーデン王国
-    "SG\tSingapore", 	#シンガポール共和国
-    "TH\tThailand", 	#タイ王国
-    "TO\tTonga", 	#トンガ王国
-    "TV\tTuvalu", 	#ツバル
-    "TW\tTaiwan", 	#台湾
-    "US\tUnited States", 	#米国
-    "VN\tVietnam", 	#ベトナム社会主義共和国
-    "VU\tVanuatu", 	#バヌアツ共和国
-    "WS\tWestern Samoa", 	#西サモア
-    );
+"IS\tIceland", #アイスランド
+"IE\tIreland", #アイルランド
+"AZ\tAzerbaijan", #アゼルバイジャン
+"AF\tAfghanistan", #アフガニスタン
+"US\tUnited States", #アメリカ合衆国
+"VI\tVirgin Islands, U.S.", #アメリカ領ヴァージン諸島
+"AS\tAmerican Samoa", #アメリカ領サモア
+"AE\tUnited Arab Emirates", #アラブ首長国連邦
+"DZ\tAlgeria", #アルジェリア
+"AR\tArgentina", #アルゼンチン
+"AW\tAruba", #アルバ
+"AL\tAlbania", #アルバニア
+"AM\tArmenia", #アルメニア
+"AI\tAnguilla", #アンギラ
+"AO\tAngola", #アンゴラ
+"AG\tAntigua and Barbuda", #アンティグア・バーブーダ
+"AD\tAndorra", #アンドラ
+"YE\tYemen", #イエメン
+"GB\tUnited Kingdom", #イギリス
+"IO\tBritish Indian Ocean Territory", #イギリス領インド洋地域
+"VG\tVirgin Islands, British", #イギリス領ヴァージン諸島
+"IL\tIsrael", #イスラエル
+"IT\tItaly", #イタリア
+"IQ\tIraq", #イラク
+"IR\tIran, Islamic Republic of", #イラン・イスラム共和国
+"IN\tIndia", #インド
+"ID\tIndonesia", #インドネシア
+"WF\tWallis and Futuna", #ウォリス・フツナ
+"UG\tUganda", #ウガンダ
+"UA\tUkraine", #ウクライナ
+"UZ\tUzbekistan", #ウズベキスタン
+"UY\tUruguay", #ウルグアイ
+"EC\tEcuador", #エクアドル
+"EG\tEgypt", #エジプト
+"EE\tEstonia", #エストニア
+"ET\tEthiopia", #エチオピア
+"ER\tEritrea", #エリトリア
+"SV\tEl Salvador", #エルサルバドル
+"AU\tAustralia", #オーストラリア
+"AT\tAustria", #オーストリア
+"AX\tÅland Islands", #オーランド諸島
+"OM\tOman", #オマーン
+"NL\tNetherlands", #オランダ
+"GH\tGhana", #ガーナ
+"CV\tCape Verde", #カーボベルデ
+"GG\tGuernsey", #ガーンジー
+"GY\tGuyana", #ガイアナ
+"KZ\tKazakhstan", #カザフスタン
+"QA\tQatar", #カタール
+"UM\tUnited States Minor Outlying Islands", #合衆国領有小離島
+"CA\tCanada", #カナダ
+"GA\tGabon", #ガボン
+"CM\tCameroon", #カメルーン
+"GM\tGambia", #ガンビア
+"KH\tCambodia", #カンボジア
+"MP\tNorthern Mariana Islands", #北マリアナ諸島
+"GN\tGuinea", #ギニア
+"GW\tGuinea-Bissau", #ギニアビサウ
+"CY\tCyprus", #キプロス
+"CU\tCuba", #キューバ
+"CW\tCuraçao", #キュラソー
+"GR\tGreece", #ギリシャ
+"KI\tKiribati", #キリバス
+"KG\tKyrgyzstan", #キルギス
+"GT\tGuatemala", #グアテマラ
+"GP\tGuadeloupe", #グアドループ
+"GU\tGuam", #グアム
+"KW\tKuwait", #クウェート
+"CK\tCook Islands", #クック諸島
+"GL\tGreenland", #グリーンランド
+"CX\tChristmas Island", #クリスマス島
+"GD\tGrenada", #グレナダ
+"HR\tCroatia", #クロアチア
+"KY\tCayman Islands", #ケイマン諸島
+"KE\tKenya", #ケニア
+"CI\tCôte d'Ivoire", #コートジボワール
+"CC\tCocos (Keeling) Islands", #ココス（キーリング）諸島
+"CR\tCosta Rica", #コスタリカ
+"KM\tComoros", #コモロ
+"CO\tColombia", #コロンビア
+"CG\tCongo", #コンゴ共和国
+"CD\tCongo, the Democratic Republic of the", #コンゴ民主共和国
+"SA\tSaudi Arabia", #サウジアラビア
+"GS\tSouth Georgia and the South Sandwich Islands", #サウスジョージア・サウスサンドウィッチ諸島
+"WS\tSamoa", #サモア
+"ST\tSao Tome and Principe", #サントメ・プリンシペ
+"BL\tSaint Barthélemy", #サン・バルテルミー
+"ZM\tZambia", #ザンビア
+"PM\tSaint Pierre and Miquelon", #サンピエール島・ミクロン島
+"SM\tSan Marino", #サンマリノ
+"MF\tSaint Martin (French part)", #サン・マルタン（フランス領）
+"SL\tSierra Leone", #シエラレオネ
+"DJ\tDjibouti", #ジブチ
+"GI\tGibraltar", #ジブラルタル
+"JE\tJersey", #ジャージー
+"JM\tJamaica", #ジャマイカ
+"GE\tGeorgia", #ジョージア
+"SY\tSyrian Arab Republic", #シリア・アラブ共和国
+"SG\tSingapore", #シンガポール
+"SX\tSint Maarten (Dutch part)", #シント・マールテン（オランダ領）
+"ZW\tZimbabwe", #ジンバブエ
+"CH\tSwitzerland", #スイス
+"SE\tSweden", #スウェーデン
+"SD\tSudan", #スーダン
+"SJ\tSvalbard and Jan Mayen", #スヴァールバル諸島およびヤンマイエン島
+"ES\tSpain", #スペイン
+"SR\tSuriname", #スリナム
+"LK\tSri Lanka", #スリランカ
+"SK\tSlovakia", #スロバキア
+"SI\tSlovenia", #スロベニア
+"SZ\tSwaziland", #スワジランド
+"SC\tSeychelles", #セーシェル
+"GQ\tEquatorial Guinea", #赤道ギニア
+"SN\tSenegal", #セネガル
+"RS\tSerbia", #セルビア
+"KN\tSaint Kitts and Nevis", #セントクリストファー・ネイビス
+"VC\tSaint Vincent and the Grenadines", #セントビンセントおよびグレナディーン諸島
+"SH\tSaint Helena, Ascension and Tristan da Cunha", #セントヘレナ・アセンションおよびトリスタンダクーニャ
+"LC\tSaint Lucia", #セントルシア
+"SO\tSomalia", #ソマリア
+"SB\tSolomon Islands", #ソロモン諸島
+"TC\tTurks and Caicos Islands", #タークス・カイコス諸島
+"TH\tThailand", #タイ
+"KR\tKorea, Republic of", #大韓民国
+"TW\tTaiwan, Province of China", #台湾
+"TJ\tTajikistan", #タジキスタン
+"TZ\tTanzania, United Republic of", #タンザニア
+"CZ\tCzechia", #チェコ
+"TD\tChad", #チャド
+"CF\tCentral African Republic", #中央アフリカ共和国
+"CN\tChina", #中華人民共和国
+"TN\tTunisia", #チュニジア
+"KP\tKorea, Democratic People's Republic of", #朝鮮民主主義人民共和国
+"CL\tChile", #チリ
+"TV\tTuvalu", #ツバル
+"DK\tDenmark", #デンマーク
+"DE\tGermany", #ドイツ
+"TG\tTogo", #トーゴ
+"TK\tTokelau", #トケラウ
+"DO\tDominican Republic", #ドミニカ共和国
+"DM\tDominica", #ドミニカ国
+"TT\tTrinidad and Tobago", #トリニダード・トバゴ
+"TM\tTurkmenistan", #トルクメニスタン
+"TR\tTurkey", #トルコ
+"TO\tTonga", #トンガ
+"NG\tNigeria", #ナイジェリア
+"NR\tNauru", #ナウル
+"NA\tNamibia", #ナミビア
+"AQ\tAntarctica", #南極
+"NU\tNiue", #ニウエ
+"NI\tNicaragua", #ニカラグア
+"NE\tNiger", #ニジェール
+"JP\tJapan", #日本
+"EH\tWestern Sahara", #西サハラ
+"NC\tNew Caledonia", #ニューカレドニア
+"NZ\tNew Zealand", #ニュージーランド
+"NP\tNepal", #ネパール
+"NF\tNorfolk Island", #ノーフォーク島
+"NO\tNorway", #ノルウェー
+"HM\tHeard Island and McDonald Islands", #ハード島とマクドナルド諸島
+"BH\tBahrain", #バーレーン
+"HT\tHaiti", #ハイチ
+"PK\tPakistan", #パキスタン
+"VA\tHoly See (Vatican City State)", #バチカン市国
+"PA\tPanama", #パナマ
+"VU\tVanuatu", #バヌアツ
+"BS\tBahamas", #バハマ
+"PG\tPapua New Guinea", #パプアニューギニア
+"BM\tBermuda", #バミューダ
+"PW\tPalau", #パラオ
+"PY\tParaguay", #パラグアイ
+"BB\tBarbados", #バルバドス
+"PS\tPalestinian Territory, Occupied", #パレスチナ
+"HU\tHungary", #ハンガリー
+"BD\tBangladesh", #バングラデシュ
+"TL\tTimor-Leste", #東ティモール
+"PN\tPitcairn", #ピトケアン
+"FJ\tFiji", #フィジー
+"PH\tPhilippines", #フィリピン
+"FI\tFinland", #フィンランド
+"BT\tBhutan", #ブータン
+"BV\tBouvet Island", #ブーベ島
+"PR\tPuerto Rico", #プエルトリコ
+"FO\tFaroe Islands", #フェロー諸島
+"FK\tFalkland Islands (Malvinas)", #フォークランド（マルビナス）諸島
+"BR\tBrazil", #ブラジル
+"FR\tFrance", #フランス
+"GF\tFrench Guiana", #フランス領ギアナ
+"PF\tFrench Polynesia", #フランス領ポリネシア
+"TF\tFrench Southern Territories", #Flag of the French Southern and Antarctic Lands.svg フランス領南方・南極地域
+"BG\tBulgaria", #ブルガリア
+"BF\tBurkina Faso", #ブルキナファソ
+"BN\tBrunei Darussalam", #ブルネイ・ダルサラーム
+"BI\tBurundi", #ブルンジ
+"VN\tViet Nam", #ベトナム
+"BJ\tBenin", #ベナン
+"VE\tVenezuela, Bolivarian Republic of", #ベネズエラ・ボリバル共和国
+"BY\tBelarus", #ベラルーシ
+"BZ\tBelize", #ベリーズ
+"PE\tPeru", #ペルー
+"BE\tBelgium", #ベルギー
+"PL\tPoland", #ポーランド
+"BA\tBosnia and Herzegovina", #ボスニア・ヘルツェゴビナ
+"BW\tBotswana", #ボツワナ
+"BQ\tBonaire, Saint Eustatius and Saba", #ボネール、シント・ユースタティウスおよびサバ
+"BO\tBolivia, Plurinational State of", #ボリビア多民族国
+"PT\tPortugal", #ポルトガル
+"HK\tHong Kong", #香港
+"HN\tHonduras", #ホンジュラス
+"MH\tMarshall Islands", #マーシャル諸島
+"MO\tMacau", #マカオ
+"MK\tMacedonia, the former Yugoslav Republic of", #マケドニア旧ユーゴスラビア共和国
+"MG\tMadagascar", #マダガスカル
+"YT\tMayotte", #マヨット
+"MW\tMalawi", #マラウイ
+"ML\tMali", #マリ
+"MT\tMalta", #マルタ
+"MQ\tMartinique", #マルティニーク
+"MY\tMalaysia", #マレーシア
+"IM\tIsle of Man", #マン島
+"FM\tMicronesia, Federated States of", #ミクロネシア連邦
+"ZA\tSouth Africa", #南アフリカ
+"SS\tSouth Sudan", #南スーダン
+"MM\tMyanmar", #ミャンマー
+"MX\tMexico", #メキシコ
+"MU\tMauritius", #モーリシャス
+"MR\tMauritania", #モーリタニア
+"MZ\tMozambique", #モザンビーク
+"MC\tMonaco", #モナコ
+"MV\tMaldives", #モルディブ
+"MD\tMoldova, Republic of", #モルドバ共和国
+"MA\tMorocco", #モロッコ
+"MN\tMongolia", #モンゴル
+"ME\tMontenegro", #モンテネグロ
+"MS\tMontserrat", #モントセラト
+"JO\tJordan", #ヨルダン
+"LA\tLao People's Democratic Republic", #ラオス人民民主共和国
+"LV\tLatvia", #ラトビア
+"LT\tLithuania", #リトアニア
+"LY\tLibya", #リビア
+"LI\tLiechtenstein", #リヒテンシュタイン
+"LR\tLiberia", #リベリア
+"RO\tRomania", #ルーマニア
+"LU\tLuxembourg", #ルクセンブルク
+"RW\tRwanda", #ルワンダ
+"LS\tLesotho", #レソト
+"LB\tLebanon", #レバノン
+"RE\tRéunion", #レユニオン
+"RU\tRussian Federation", #ロシア連邦
+"AP\tAsia Pacific region", 	#アジア太平洋地域に複数箇所にまたがる物
+);
 
 sub calc_end_ip {
     my ($start, $value) = @_;
@@ -147,39 +342,81 @@ foreach my $list (@list_country) {
     $codehash{$code} = $country;
 }
 
-### apnicからdelegate listの取得
-print "*** apnicからdelegate listの取得\n";
-if (-f "$dirname/delegated-apnic-latest") {
-    unlink("$dirname/delegated-apnic-latest");
-}
-if (-f "$dirname/delegated-apnic-latest.md5") {
-    unlink("$dirname/delegated-apnic-latest.md5");
-}
-`cd $dirname; /usr/bin/lftpget ftp://ftp.apnic.net/public/apnic/stats/apnic/delegated-apnic-latest`;
-`cd $dirname; /usr/bin/lftpget ftp://ftp.apnic.net/public/apnic/stats/apnic/delegated-apnic-latest.md5`;
+#ftp://ftp.apnic.net/pub/stats/apnic/
+#ftp://ftp.lacnic.net/pub/stats/lacnic/
+#ftp://ftp.ripe.net/pub/stats/ripencc/
+#ftp://ftp.arin.net/pub/stats/arin/
+#ftp://ftp.afrinic.net/stats/afrinic/
+#lrwxrwxrwx    1 1004     1004           26 Apr 24 05:30 delegated-afrinic-latest -> delegated-afrinic-20170424
+#lrwxrwxrwx    1 1004     1004           30 Apr 24 05:30 delegated-afrinic-latest.asc -> delegated-afrinic-20170424.asc
+#lrwxrwxrwx    1 1004     1004           30 Apr 24 05:30 delegated-afrinic-latest.md5 -> delegated-afrinic-20170424.md5
+#lrwxr-xr-x  1 2001  2001       25 Apr 23 23:52 delegated-lacnic-latest -> delegated-lacnic-20170423
+#-rw-r--r--  1 2001  2001       65 Apr 23 23:52 delegated-lacnic-latest.md5
+#lrwxrwxrwx   1 ftp1     ftp1           32 Apr 24 06:05 delegated-arin-extended-latest -> delegated-arin-extended-20170424
+#lrwxrwxrwx   1 ftp1     ftp1           36 Apr 24 06:05 delegated-arin-extended-latest.md5 -> delegated-arin-extended-20170424.md5
 
-### md5のチェック
+
+
+#@nic_list = ("apnic", "lacnic", "ripe", "arin", "afrinic");
+%nics = (
+    "apnic"   => "ftp://ftp.apnic.net/pub/stats/apnic/delegated-apnic-latest",
+    "lacnic"  => "ftp://ftp.lacnic.net/pub/stats/lacnic/delegated-lacnic-latest",
+    "ripencc" => "ftp://ftp.ripe.net/pub/stats/ripencc/delegated-ripencc-latest",
+    "arin" => "ftp://ftp.arin.net/pub/stats/arin/delegated-arin-extended-latest",
+    "afrinic" => "ftp://ftp.afrinic.net/stats/afrinic/delegated-afrinic-latest",
+);
+
+foreach $nic (keys %nics) {
+	chomp($nic);
+	print "$nic: $nics{$nic}\n";
+	@temp = split("/", $nics{$nic});
+	$filename = $temp[scalar(@temp) - 1];
+print "*** $nic からdelegate listの取得\n";
+if (-f "$dirname/$filename") {
+    unlink("$dirname/$filename");
+}
+if (-f "$dirname/$filename.md5") {
+    unlink("$dirname/$filename.md5");
+}
+`cd $dirname; /usr/bin/lftpget $nics{$nic}`;
+`cd $dirname; /usr/bin/lftpget $nics{$nic}.md5`;
+
+## md5のチェック
 print "*** MD5 check\n";
-@repl = `cd $dirname; /usr/bin/md5sum -c $dirname/delegated-apnic-latest.md5`;
-if (scalar(@repl) != 1) {
-    print "NG: md5sum error $dirname/delegated-apnic-latest\n";
+$md5sum = `cd $dirname; /usr/bin/md5sum $dirname/$filename | awk '{print \$1}'`;
+chomp($md5sum);
+print "$md5sum\n";
+print `cat $dirname/$filename.md5`;
+@repl = `grep $md5sum $dirname/$filename.md5`;
+my $exit_value = $? >> 8;
+if ($exit_value != 0) {
+    print "NG: md5sum error $dirname/$filename\n";
     exit(0);
+} else {
+	print "OK: md5sum $nic\n";
 }
-
+@list = ();
+@list = `grep ipv4 $dirname/$filename`;
+push @all_list, @list;
+}
 
 ### アドレスブロックを整理
 print "*** リストからアドレスを変換\n";
-@list = `grep ipv4 $dirname/delegated-apnic-latest`;
 
-foreach $line (@list) {
+foreach $line (@all_list) {
     chomp($line);
     ($registry, $cc, $type, $start, $value, $date, $status, $extensions) = split(/\|/, $line);
     foreach $country (@deny_country) {
-	chomp($country);
-	if ($country eq $cc) {
-	    $end_ip = &calc_end_ip($start, $value);
-	    push @{$addresses->{$country}}, Net::Netmask->new("$start - $end_ip");
-	}
+        chomp($country);
+        if ($country eq $cc) {
+			#$end_ip = &calc_end_ip($start, $value);
+			my $ip = new Net::IP("$start + " . ("$value" - 1));
+			#push @{$addresses->{$country}}, Net::Netmask->new("$start - $end_ip");
+			foreach $temp ($ip->find_prefixes()) {
+				push @{$addresses->{$country}}, Net::Netmask->new("$temp");
+				#push @{$addresses->{$country}}, $temp;
+			}
+        }
     }
 }
 
