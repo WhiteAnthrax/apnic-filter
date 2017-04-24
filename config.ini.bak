@@ -1,5 +1,0 @@
-{
-iptables => '/bin/iptables',
-limit_port => '22,25,53,80,110,139,143,587,901,993,995,3128,4949',
-allow_country => ['JP'],
-}
