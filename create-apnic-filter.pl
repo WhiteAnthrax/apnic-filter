@@ -479,10 +479,16 @@ foreach $country (@deny_country) {
     open my $fh, '>>', "$dirname/data/$date";
     $filter_header = $country . '_DENY';
     $count = scalar(@aggregated);
+	$count2 = 0;
     print $fh "echo \"*** iptables 登録中: $country($codehash{$country}) $count address\"\n";
+	print $fh "printf \"%6d/%6d\" 0 $count\n";
+	print $fh "echo -ne '\b\b\b\b\b\b\b\b\b\b\b\b\b'\n";
     foreach $line (@aggregated) {
 		chomp($line);
+		$count2++;
 		print $fh "$iptables -w -A DENY_FILTER -p tcp -s $line $limit -j $filter_header\n";
+		print $fh "printf \"%6d/%6d\" $count2 $count\n";
+		print $fh "echo -ne '\b\b\b\b\b\b\b\b\b\b\b\b\b'\n";
     }
     close $fh;
 }
@@ -498,14 +504,14 @@ foreach $country (@$allow_list) {
     $count = scalar(@aggregated);
 	$count2 = 0;
     print $fh "echo \"*** iptables 登録中: $country($codehash{$country}) $count address:\"\n";
-	print $fh "printf \"%6d/%6d\" 0 $count";
-	print $fh "echo -ne '\b\b\b\b\b\b\b\b\b\b\b\b\b'";
+	print $fh "printf \"%6d/%6d\" 0 $count\n";
+	print $fh "echo -ne '\b\b\b\b\b\b\b\b\b\b\b\b\b'\n";
     foreach $line (@aggregated) {
 		chomp($line);
 		$count2++;
 		print $fh "$iptables -w -A DENY_FILTER -p tcp -s $line $limit -j $filter_header\n";
-		print $fh "printf \"%6d/%6d\" $count2 $count";
-		print $fh "echo -ne '\b\b\b\b\b\b\b\b\b\b\b\b\b'";
+		print $fh "printf \"%6d/%6d\" $count2 $count\n";
+		print $fh "echo -ne '\b\b\b\b\b\b\b\b\b\b\b\b\b'\n";
     }
     close $fh;
 }
