@@ -405,7 +405,7 @@ print "*** リストからアドレスを変換\n";
 
 foreach $line (@all_list) {
     chomp($line);
-    ($registry, $cc, $type, $start, $value, $date, $status, $extensions) = split(/\|/, $line);
+    ($registry, $cc, $type, $start, $value, $delegate_date, $status, $extensions) = split(/\|/, $line);
     foreach $country (@all_country) {
         chomp($country);
         if ($country eq $cc) {
