@@ -461,6 +461,10 @@ foreach $country (@$allow_list) {
 	#print $fh "$iptables -A $filter_header -j LOG --log-prefix="[$codehash{$country}] " --log-level 5\n";
     print $fh "$iptables -A $filter_header -j ACCEPT\n";
 }
+print $fh "echo \"*** FILTER初期化中: OTHER\"\n";
+print $fh "$iptables -F OTHER_DENY\n";
+print $fh "$iptables -X OTHER_DENY\n";
+print $fh "$iptables -N OTHER_DENY\n";
 print $fh "$iptables -A OTHER_DENY -j LOG --log-prefix='[OTHER] ' --log-level 5\n";
 print $fh "$iptables -A OTHER_DENY -j DROP\n";
 close $fh;
@@ -492,10 +496,16 @@ foreach $country (@$allow_list) {
     open my $fh, '>>', "$dirname/data/$date";
     $filter_header = $country . '_ALLOW';
     $count = scalar(@aggregated);
-    print $fh "echo \"*** iptables 登録中: $country($codehash{$country}) $count address\"\n";
+	$count2 = 0;
+    print $fh "echo \"*** iptables 登録中: $country($codehash{$country}) $count address:\"\n";
+	print $fh "printf \"%6d/%6d\" 0 $count";
+	print $fh "echo -ne '\b\b\b\b\b\b\b\b\b\b\b\b\b'";
     foreach $line (@aggregated) {
 		chomp($line);
+		$count2++;
 		print $fh "$iptables -w -A DENY_FILTER -p tcp -s $line $limit -j $filter_header\n";
+		print $fh "printf \"%6d/%6d\" $count2 $count";
+		print $fh "echo -ne '\b\b\b\b\b\b\b\b\b\b\b\b\b'";
     }
     close $fh;
 }
