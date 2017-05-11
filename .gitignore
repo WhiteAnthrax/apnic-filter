@@ -4,3 +4,5 @@ delegated*
 data
 config.ini
 config.ini.bak
+GeoIPCountryCSV.zip
+GeoIPCountryWhois.csv
