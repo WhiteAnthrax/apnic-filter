@@ -14,7 +14,7 @@ my $dirname = dirname(__FILE__);
 $geoip_uri = 'http://geolite.maxmind.com/download/geoip/database/GeoIPCountryCSV.zip';
 
 my $config;
-my $conf_file = 'config.ini';
+my $conf_file = './config.ini';
 if (-f "$conf_file") {
     print "read $conf_file\n";
     $config = do $conf_file or die "$!$@";
@@ -375,7 +375,7 @@ foreach $country (@deny_country) {
     print $fh "$iptables -F $filter_header\n";
     print $fh "$iptables -X $filter_header\n";
     print $fh "$iptables -N $filter_header\n";
-    print $fh "$iptables -A $filter_header -j NFLOG --nflog-prefix=\"[$codehash{$country}] \" --nflog-level 2\n";
+    print $fh "$iptables -A $filter_header -j NFLOG --nflog-prefix=\"[DROP $codehash{$country}] \" --nflog-group 2\n";
     print $fh "$iptables -A $filter_header -j DROP\n";
 }
 foreach $country (@$allow_list) {
@@ -385,14 +385,14 @@ foreach $country (@$allow_list) {
     print $fh "$iptables -F $filter_header\n";
     print $fh "$iptables -X $filter_header\n";
     print $fh "$iptables -N $filter_header\n";
-    print $fh "$iptables -A $filter_header -j NFLOG --nflog-prefix="[$codehash{$country}] " --nflog-group 2\n";
+    print $fh "$iptables -A $filter_header -j NFLOG --nflog-prefix=\"[ACCEPT $codehash{$country}] \" --nflog-group 2\n";
     print $fh "$iptables -A $filter_header -j ACCEPT\n";
 }
 print $fh "echo \"*** FILTER初期化中: OTHER\"\n";
 print $fh "$iptables -F OTHER_DENY\n";
 print $fh "$iptables -X OTHER_DENY\n";
 print $fh "$iptables -N OTHER_DENY\n";
-print $fh "$iptables -A OTHER_DENY -j NFLOG --nflog-prefix='[OTHER] ' --nflog-group 2\n";
+print $fh "$iptables -A OTHER_DENY -j NFLOG --nflog-prefix='[DROP OTHER] ' --nflog-group 2\n";
 print $fh "$iptables -A OTHER_DENY -j DROP\n";
 close $fh;
 
@@ -413,7 +413,8 @@ foreach $country (@deny_country) {
     foreach $line (@aggregated) {
         chomp($line);
         $count2++;
-        print $fh "$iptables -w -A DENY_FILTER -p tcp -s $line $limit -j $filter_header\n";
+		#print $fh "$iptables -w -A DENY_FILTER -p tcp -s $line $limit -j $filter_header\n";
+        print $fh "$iptables -A DENY_FILTER -p tcp -s $line $limit -j $filter_header\n";
         print $fh "printf \"%6d/%6d\" $count2 $count\n";
         print $fh "echo -ne '\b\b\b\b\b\b\b\b\b\b\b\b\b'\n";
     }
@@ -436,7 +437,8 @@ foreach $country (@$allow_list) {
     foreach $line (@aggregated) {
         chomp($line);
         $count2++;
-        print $fh "$iptables -w -A DENY_FILTER -p tcp -s $line $limit -j $filter_header\n";
+		#print $fh "$iptables -w -A DENY_FILTER -p tcp -s $line $limit -j $filter_header\n";
+        print $fh "$iptables -A DENY_FILTER -p tcp -s $line $limit -j $filter_header\n";
         print $fh "printf \"%6d/%6d\" $count2 $count\n";
         print $fh "echo -ne '\b\b\b\b\b\b\b\b\b\b\b\b\b'\n";
     }
@@ -444,7 +446,8 @@ foreach $country (@$allow_list) {
 }
 print "*** other IP DENY ***\n";
 open my $fh, '>>', "$dirname/data/$year/$date";
-print $fh "$iptables -w -A DENY_FILTER -p tcp -s 0.0.0.0/0 $limit -j OTHER_DENY\n";
+#print $fh "$iptables -w -A DENY_FILTER -p tcp -s 0.0.0.0/0 $limit -j OTHER_DENY\n";
+print $fh "$iptables -A DENY_FILTER -p tcp -s 0.0.0.0/0 $limit -j OTHER_DENY\n";
 close $fh;
 
 
