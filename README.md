@@ -1,1 +1,2 @@
 apnicからデータを取得し、特定の国をフィルタするiptablesを吐き出す
+geoip と ipsetを 使うように変更
