@@ -6,3 +6,5 @@ config.ini
 config.ini.bak
 GeoIPCountryCSV.zip
 GeoIPCountryWhois.csv
+current-iptables
+current-update-ipset
