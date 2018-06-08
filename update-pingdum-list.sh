@@ -24,6 +24,7 @@ done
 ipset list pingdom-source > /dev/null 2>&1
 if [ $? -eq 0 ]; then
   ipset swap pingdom-source-temp pingdom-source
+  ipset destroy pingdom-source-temp
 else
   ipset rename pingdom-source-temp pingdom-source
 fi

@@ -444,6 +444,7 @@ foreach $country (keys %countries) {
     print $fh "ipset list $country > /dev/null 2>&1\n";
     print $fh 'if [ $? -eq 0 ]; then' . "\n";
     print $fh "  ipset swap $country-temp $country\n";
+    print $fh "  ipset destroy $country-temp\n";
     print $fh "else\n";
     print $fh "  ipset rename $country-temp $country\n";
     print $fh "fi\n";
