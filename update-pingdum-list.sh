@@ -28,4 +28,6 @@ else
   ipset rename pingdom-source-temp pingdom-source
 fi
 
+ipset save > /etc/ipset.conf
+
 rm ${tempfile} ||:

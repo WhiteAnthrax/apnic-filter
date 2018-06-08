@@ -459,7 +459,7 @@ foreach $country (keys %countries) {
 `ln -sf $dirname/data/$year/$date-update-ipset $dirname/current-update-ipset`;
 
 if ($run_mode eq "update-ipset") {
-    system("sudo /bin/sh $dirname/data/$year/$date-update-ipset");
+    system("sudo /bin/sh -c "$dirname/data/$year/$date-update-ipset && ipset save > /etc/ipset.conf");
     exit(0);
 }
 
@@ -469,5 +469,5 @@ print "*** 新しいKRFILTERを登録\n";
 print "# for initial\n";
 print "please run 'sudo /bin/sh $dirname/data/$year/$date-iptables'\n";
 print "# for iplist update only\n";
-print "please run 'sudo /bin/sh $dirname/data/$year/$date-update-ipset'\n";
+print "please run 'sudo /bin/sh -c "$dirname/data/$year/$date-update-ipset && ipset save > /etc/ipset.conf"'\n";
 print "*** 完了\n";
