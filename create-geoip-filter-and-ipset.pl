@@ -90,13 +90,16 @@ foreach my $line (@all_geoname_data) {
   my @parsed_csv = &parse_line(',', undef, $line);
   my ($geoname_id, $locale_code, $continent_code, $continent_name, $country_iso_code, $country_name, $is_in_european_union) = @parsed_csv;
   if ($country_iso_code eq '' and $country_name eq '') {
-    $country_iso_code = $continent_code;
+    $country_iso_code = $continent_name;
     $country_name = $continent_name;
   }
   push(@list_country, "$geoname_id\t$country_iso_code\t$country_name");
   $geoname_id_cc{$geoname_id} = $country_iso_code;
 
 }
+push(@list_country, "UNKNOWN\tUNKNOWN\tUNKOWN");
+$geoname_id_cc{"UNKNOWN"} = "UNKNOWN";
+
 foreach my $line (@list_country) {
   print "$line\n";
 }
@@ -156,6 +159,9 @@ print "*** リストからアドレスを変換\n";
 
 #network,geoname_id,registered_country_geoname_id,represented_country_geoname_id,is_anonymous_proxy,is_satellite_provider
 #1.0.0.0/24,2077456,2077456,,0,0
+#80.231.5.0/24,,,,0,1
+#193.200.150.0/24,,,,1,0
+
 my $counter = 0;
 foreach $line (@ipv4_blocklist) {
     chomp($line);
@@ -165,6 +171,9 @@ foreach $line (@ipv4_blocklist) {
     ($network, $geoname_id, $registered_country_geoname_id, $represented_country_geoname_id, $is_anonymous_proxy, $is_satellite_provider) = split(/,/, $line);
     if ($geoname_id eq '') {
       $geoname_id = $registered_country_geoname_id;
+    }
+    if ($geoname_id eq '' and $registered_country_geoname_id eq '' and $represented_country_geoname_id eq '') {
+      $geoname_id = 'UNKNOWN';
     }
     #print "$counter: $geoname_id_cc{$geoname_id}, $network\n";
 
@@ -199,7 +208,7 @@ foreach $country (@deny_country) {
     print $fh "$iptables -N $filter_header\n";
     print $fh "$iptables -A $filter_header -j NFLOG --nflog-prefix=\"[DROP $codehash{$geoname_id_cc{$country}}] \" --nflog-group 2\n";
     print $fh "$iptables -A $filter_header -j DROP\n";
-    print $fh "$iptables -A DENY_FILTER -p tcp -m set --match-set $country src $limit -j $filter_header\n";
+    print $fh "$iptables -A DENY_FILTER -p tcp -m set --match-set $geoname_id_cc{$country} src $limit -j $filter_header\n";
 }
 foreach $country (@allow_country) {
     chomp($country);
@@ -210,7 +219,7 @@ foreach $country (@allow_country) {
     print $fh "$iptables -N $filter_header\n";
     print $fh "$iptables -A $filter_header -j NFLOG --nflog-prefix=\"[ACCEPT $codehash{$geoname_id_cc{$country}}] \" --nflog-group 2\n";
     print $fh "$iptables -A $filter_header -j ACCEPT\n";
-    print $fh "$iptables -A DENY_FILTER -p tcp -m set --match-set $country src $limit -j $filter_header\n";
+    print $fh "$iptables -A DENY_FILTER -p tcp -m set --match-set $geoname_id_cc{$country} src $limit -j $filter_header\n";
 }
 print $fh "echo \"*** FILTER初期化中: OTHER\"\n";
 print $fh "$iptables -F OTHER_DENY\n";
