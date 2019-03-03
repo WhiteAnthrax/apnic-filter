@@ -7,9 +7,11 @@ use Net::IP;
 use File::Basename;
 $| = 1;
 
-my $download_skip_flag = 1;
+my $download_skip_flag = "FALSE";
 
 my $dirname = dirname(__FILE__);
+
+my $ipset = 'sudo /bin/ipset';
 
 # http://dev.maxmind.com/geoip/legacy/geolite/
 my $geoip_uri = 'http://geolite.maxmind.com/download/geoip/database/GeoIPCountryCSV.zip';
@@ -28,7 +30,7 @@ if (-f "$dirname/data/$year/$date") {
     unlink("$dirname/data/$year/$date");
 }
 
-if (!defined $download_skip_flag) {
+if ($download_skip_flag) {
     print "*** download geoip database\n";
     if (-f "$dirname/GeoIPCountryWhois.csv") {
         unlink("$dirname/GeoIPCountryWhois.csv");
@@ -120,21 +122,21 @@ foreach my $country_code (keys %countries) {
     printf("%6d/%6d", $count2 ,$count);
     print "\b\b\b\b\b\b\b\b\b\b\b\b\b";
 
-    `ipset create -exist $country_code-temp hash:net`;
-    `ipset flush $country_code-temp`;
+    `$ipset create -exist $country_code-temp hash:net`;
+    `$ipset flush $country_code-temp`;
     foreach my $line (@aggregated) {
         chomp($line);
         $count2++;
-        `ipset add $country_code-temp $line`;
+        `$ipset add $country_code-temp $line`;
         printf("%6d/%6d", $count2, $count);
         print "\b\b\b\b\b\b\b\b\b\b\b\b\b";
     }
-    `ipset list $country_code > /dev/null 2>&1`;
+    `$ipset list $country_code > /dev/null 2>&1`;
     my $exit_value = $? >> 8;
     if ($exit_value == 0) {
-        `ipset swap $country_code-temp $country_code`;
-        `ipset destroy $country_code-temp`;
+        `$ipset swap $country_code-temp $country_code`;
+        `$ipset destroy $country_code-temp`;
     } else {
-        `ipset rename $country_code-temp $country_code`;
+        `$ipset rename $country_code-temp $country_code`;
     }
 }

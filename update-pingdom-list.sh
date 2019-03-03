@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh
 
 ### rootで実行してね
 if [ "$EUID" != "0" ]; then
@@ -12,7 +12,7 @@ ipset flush pingdom-source-temp
 
 ### get ip list
 tempfile=$(mktemp "/tmp/update-pingdom.tmp.XXXXXX")
-curl -f --silent -o ${tempfile} https://my.pingdom.com/probes/ipv4
+curl -f --silent -o ${tempfile} https://my.pingdom.com/probes/ipv4 || exit
 
 ### ipset add
 cat ${tempfile} | while read line
