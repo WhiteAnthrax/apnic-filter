@@ -10,3 +10,5 @@ current-iptables
 current-update-ipset
 GeoLite2-Country-CSV.zip
 GeoLite2/
+Japanlist-by-geoip.csv.old
+Japanlist-by-geoip.csv

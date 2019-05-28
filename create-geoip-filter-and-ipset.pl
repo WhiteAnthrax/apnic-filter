@@ -113,6 +113,7 @@ print "GeoLite2 all records: " . scalar(@ipv4_blocklist) . "\n";
 $iptables = $config->{iptables};
 $limit = '-m multiport --dport ' . $config->{limit_port};
 $allow_list = $config->{allow_country};
+$ipset = $config->{ipset};
 
 $year = `date +'%Y'`;
 chomp($year);
@@ -251,24 +252,24 @@ foreach $country (keys %countries) {
     print $fh "printf \"%6d/%6d\" 0 $count\n";
     print $fh "echo -ne '\b\b\b\b\b\b\b\b\b\b\b\b\b'\n";
 
-    print $fh "ipset create -exist $country-temp hash:net\n";
-    print $fh "ipset flush $country-temp\n";
+    print $fh "$ipset create -exist $country-temp hash:net\n";
+    print $fh "$ipset flush $country-temp\n";
 
     foreach $line (@aggregated) {
         chomp($line);
         $count2++;
         #print $fh "$iptables -w -A DENY_FILTER -p tcp -s $line $limit -j $filter_header\n";
         #print $fh "$iptables -A DENY_FILTER -p tcp -s $line $limit -j $filter_header\n";
-        print $fh "ipset add $country-temp $line\n";
+        print $fh "$ipset add $country-temp $line\n";
         print $fh "printf \"%6d/%6d\" $count2 $count\n";
         print $fh "echo -ne '\b\b\b\b\b\b\b\b\b\b\b\b\b'\n";
     }
-    print $fh "ipset list $country > /dev/null 2>&1\n";
+    print $fh "$ipset list $country > /dev/null 2>&1\n";
     print $fh 'if [ $? -eq 0 ]; then' . "\n";
-    print $fh "  ipset swap $country-temp $country\n";
-    print $fh "  ipset destroy $country-temp\n";
+    print $fh "  $ipset swap $country-temp $country\n";
+    print $fh "  $ipset destroy $country-temp\n";
     print $fh "else\n";
-    print $fh "  ipset rename $country-temp $country\n";
+    print $fh "  $ipset rename $country-temp $country\n";
     print $fh "fi\n";
     close $fh;
 }
@@ -282,7 +283,7 @@ foreach $country (keys %countries) {
 `ln -sf $dirname/data/$year/$date-update-ipset $dirname/current-update-ipset`;
 
 if ($run_mode eq "update-ipset") {
-    system("sudo /bin/sh -c \"$dirname/data/$year/$date-update-ipset && ipset save > /etc/ipset.conf\"");
+    system("sudo /bin/sh -c \"$dirname/data/$year/$date-update-ipset && $ipset save > /etc/ipset.conf\"");
     exit(0);
 }
 
@@ -292,5 +293,5 @@ print "*** 新しいKRFILTERを登録\n";
 print "# for initial\n";
 print "please run 'sudo /bin/sh $dirname/data/$year/$date-iptables'\n";
 print "# for iplist update only\n";
-print "please run 'sudo /bin/sh -c \"$dirname/data/$year/$date-update-ipset && ipset save > /etc/ipset.conf\"'\n";
+print "please run 'sudo /bin/sh -c \"$dirname/data/$year/$date-update-ipset && $ipset save > /etc/ipset.conf\"'\n";
 print "*** 完了\n";
