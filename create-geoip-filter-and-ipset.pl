@@ -254,7 +254,7 @@ foreach $country (keys %countries) {
     print $fh "printf \"%6d/%6d\" 0 $count\n";
     print $fh "echo -ne '\b\b\b\b\b\b\b\b\b\b\b\b\b'\n";
 
-    print $fh "$ipset create -exist $country-temp hash:net\n";
+    print $fh "$ipset create -exist $country-temp hash:net maxelem $count\n";
     print $fh "$ipset flush $country-temp\n";
 
     foreach $line (@aggregated) {
