@@ -32,7 +32,14 @@ if (-f "$conf_file") {
     exit(1);
 }
 
-if (!-x "/usr/bin/curl") {
+$iptables = $config->{iptables};
+$limit = '-m multiport --dport ' . $config->{limit_port};
+$allow_list = $config->{allow_country};
+$ipset = $config->{ipset};
+$unzip = $config->{unzip};
+$curl = $config->{curl};
+
+if (!-x $unzip) {
     print "curl not found\n";
     exit(1);
 }
@@ -59,7 +66,7 @@ my $flag = 0;
 my $count = 0;
 while ($flag == 0) {
     $count++;
-    `cd $dirname ; /usr/bin/curl -s -L -O $geoip_uri && /bin/unzip -j -d $geolite_dir $dirname/$geoip_zipfile`;
+    `cd $dirname ; ${curl} -s -L -O $geoip_uri && ${unzip} -j -d $geolite_dir $dirname/$geoip_zipfile`;
     my $exit_value = $? >> 8;
     if ($exit_value == 0) {
         $flag = 1;
@@ -109,11 +116,6 @@ my @ipv4_blocklist = <$fh>;
 close $fh;
 shift(@ipv4_blocklist);
 print "GeoLite2 all records: " . scalar(@ipv4_blocklist) . "\n";
-
-$iptables = $config->{iptables};
-$limit = '-m multiport --dport ' . $config->{limit_port};
-$allow_list = $config->{allow_country};
-$ipset = $config->{ipset};
 
 $year = `date +'%Y'`;
 chomp($year);
