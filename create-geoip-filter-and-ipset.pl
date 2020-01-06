@@ -17,7 +17,6 @@ my $run_mode = $ARGV[0];
 
 ### for JP list
 my $geoip_zipfile = 'GeoLite2-Country-CSV.zip';
-my $geoip_uri = "http://geolite.maxmind.com/download/geoip/database/$geoip_zipfile";
 my $geoip_blockfile = 'GeoLite2-Country-Blocks-IPv4.csv';
 my $geoname_idfile = 'GeoLite2-Country-Locations-en.csv';
 my $geolite_dir = "$dirname/GeoLite2";
@@ -38,6 +37,8 @@ $allow_list = $config->{allow_country};
 $ipset = $config->{ipset};
 $unzip = $config->{unzip};
 $curl = $config->{curl};
+
+my $geoip_uri = 'https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=' . $config->{geolite2_license} . '&suffix=zip';
 
 if (!-x $unzip) {
     print "curl not found\n";
@@ -66,7 +67,7 @@ my $flag = 0;
 my $count = 0;
 while ($flag == 0) {
     $count++;
-    `cd $dirname ; ${curl} -s -L -O $geoip_uri && ${unzip} -j -d $geolite_dir $dirname/$geoip_zipfile`;
+    `cd $dirname ; ${curl} -s -L -o $geoip_zipfile "$geoip_uri" && ${unzip} -j -d $geolite_dir $dirname/$geoip_zipfile`;
     my $exit_value = $? >> 8;
     if ($exit_value == 0) {
         $flag = 1;

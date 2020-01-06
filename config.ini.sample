@@ -1,5 +1,10 @@
 {
 iptables => '/bin/iptables',
-limit_port => '22,25,53,80,110,139,143,587,901,993,995,3128,4949',
-allow_country => ['JP','AP'],
+limit_port => '22,25,80,110,139,143,443,445,587,993,995,1111,3128,4949,9001',
+geolite2_license => '',
+allow_country => ['JP'],
+curl => '/bin/curl',
+unzip => '/bin/unzip',
+ipset => '/bin/ipset',
 }
+
