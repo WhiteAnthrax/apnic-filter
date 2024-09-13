@@ -203,6 +203,15 @@ print $fh "$iptables -X DENY_FILTER\n";
 print $fh "$iptables -N DENY_FILTER\n";
 print $fh "$iptables -A INPUT -m conntrack --ctstate NEW -j DENY_FILTER\n";
 
+# PortScanner filter (like shodan)
+print $fh "echo \"*** FILTER初期化中: PortScanner\"\n";
+print $fh "$iptables -F PortScanner\n";
+print $fh "$iptables -X PortScanner\n";
+print $fh "$iptables -N PortScanner\n";
+print $fh "$iptables -A PortScanner -j NFLOG --nflog-prefix=\"[Drop PortScanner] \" --nflog-group 2\n";
+print $fh "$iptables -A PortScanner -j DROP\n";
+print $fh "$iptables -A DENY_FILTER -p tcp -m set --match-set PortScanner src -j PortScanner\n";
+
 foreach $country (@deny_country) {
     chomp($country);
     $filter_header = $geoname_id_cc{$country} . '_DENY';
@@ -225,6 +234,7 @@ foreach $country (@allow_country) {
     print $fh "$iptables -A $filter_header -j ACCEPT\n";
     print $fh "$iptables -A DENY_FILTER -p tcp -m set --match-set $geoname_id_cc{$country} src $limit -j $filter_header\n";
 }
+
 print $fh "echo \"*** FILTER初期化中: OTHER\"\n";
 print $fh "$iptables -F OTHER_DENY\n";
 print $fh "$iptables -X OTHER_DENY\n";
@@ -276,6 +286,29 @@ foreach $country (keys %countries) {
     print $fh "fi\n";
     close $fh;
 }
+
+### Portscanner block ipset
+open my $fh, '<', "$dirname/port-scanner-reject.txt";
+@portscanner_addresses = <$fh>;
+close $fh;
+
+$count = scalar(@portscanner_addresses);
+open my $fh, '>>', "$dirname/data/$year/$date-update-ipset";
+print $fh "$ipset create -exist PortScanner-temp hash:net maxelem $count\n";
+print $fh "$ipset flush PortScanner-temp\n";
+foreach $line (@portscanner_addresses) {
+        chomp($line);
+        $count2++;
+        print $fh "$ipset add PortScanner-temp $line\n";
+}
+print $fh "$ipset list PortScanner > /dev/null 2>&1\n";
+print $fh 'if [ $? -eq 0 ]; then' . "\n";
+print $fh "  $ipset swap PortScanner-temp PortScanner\n";
+print $fh "  $ipset destroy PortScanner-temp\n";
+print $fh "else\n";
+print $fh "  $ipset rename PortScanner-temp PortScanner\n";
+print $fh "fi\n";
+close $fh;
 
 ### allow execute
 `chmod +x $dirname/data/$year/$date-iptables`;
