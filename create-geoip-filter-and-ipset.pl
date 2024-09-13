@@ -41,7 +41,7 @@ $curl = $config->{curl};
 my $geoip_uri = 'https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=' . $config->{geolite2_license} . '&suffix=zip';
 
 if (!-x $unzip) {
-    print "curl not found\n";
+    print "unzip not found\n";
     exit(1);
 }
 
