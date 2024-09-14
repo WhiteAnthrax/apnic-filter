@@ -201,13 +201,43 @@ print $fh "$iptables -D INPUT -m conntrack --ctstate NEW -j DENY_FILTER\n";
 print $fh "$iptables -F DENY_FILTER\n";
 print $fh "$iptables -X DENY_FILTER\n";
 print $fh "$iptables -N DENY_FILTER\n";
+print $fh "$iptables -F CLOSED_PORT_ACCESS_CHECK\n";
+print $fh "$iptables -X CLOSED_PORT_ACCESS_CHECK\n";
+print $fh "$iptables -N CLOSED_PORT_ACCESS_CHECK\n";
+print $fh "$iptables -F INVALID_LOG\n";
+print $fh "$iptables -X INVALID_LOG\n";
+print $fh "$iptables -N INVALID_LOG\n";
+print $fh "$iptables -D INPUT -m state --state NEW -j CLOSED_PORT_ACCESS_CHECK\n";
+print $fh "$iptables -A INPUT -m state --state NEW -j CLOSED_PORT_ACCESS_CHECK\n";
+print $fh "$iptables -D INPUT -m state --state INVALID -j INVALID_LOG\n";
+print $fh "$iptables -A INPUT -m state --state INVALID -j INVALID_LOG\n";
 print $fh "$iptables -A INPUT -m conntrack --ctstate NEW -j DENY_FILTER\n";
+
+# 現在 listening しているポートのリストを取得
+@LISTENING_TCP_PORTS=`ss -tln | awk 'NR>1 {print \$4}' | awk -F: '{print \$NF}' | sort -un`;
+@LISTENING_UDP_PORTS=`ss -uln | awk 'NR>1 {print \$4}' | awk -F: '{print \$NF}' | sort -un`;
+# listenしているport宛ならreturn
+foreach my $port (@LISTENING_TCP_PORTS) {
+  chomp($port);
+  print $fh "$iptables -A CLOSED_PORT_ACCESS_CHECK -p tcp --dport $port -j RETURN\n";
+}
+foreach my $port (@LISTENING_UDP_PORTS) {
+  chomp($port);
+  print $fh "$iptables -A CLOSED_PORT_ACCESS_CHECK -p udp --dport $port -j RETURN\n";
+}
+# それ以外はlogging
+print $fh "$iptables -A CLOSED_PORT_ACCESS_CHECK -m limit --limit 60/min -j NFLOG --nflog-prefix=\"[closed port access2] \" --nflog-group 2\n";
+# DROP
+print $fh "$iptables -A CLOSED_PORT_ACCESS_CHECK -j DROP\n";
+
+# INVALIDなものはDROP
+print $fh "$iptables -A INVALID_LOG -m limit --limit 60/min -j NFLOG --nflog-prefix=\"[INVALID DROP2] \" --nflog-group 2\n";
+print $fh "$iptables -A INVALID_LOG -j DROP\n";
 
 # PortScanner filter (like shodan)
 print $fh "echo \"*** FILTER初期化中: PortScanner\"\n";
-print $fh "$iptables -F PortScanner\n";
-print $fh "$iptables -X PortScanner\n";
 print $fh "$iptables -N PortScanner\n";
+print $fh "$iptables -F PortScanner\n";
 print $fh "$iptables -A PortScanner -j NFLOG --nflog-prefix=\"[Drop PortScanner] \" --nflog-group 2\n";
 print $fh "$iptables -A PortScanner -j DROP\n";
 print $fh "$iptables -A DENY_FILTER -p tcp -m set --match-set PortScanner src -j PortScanner\n";
@@ -230,7 +260,7 @@ foreach $country (@allow_country) {
     print $fh "$iptables -F $filter_header\n";
     print $fh "$iptables -X $filter_header\n";
     print $fh "$iptables -N $filter_header\n";
-    print $fh "$iptables -A $filter_header -j NFLOG --nflog-prefix=\"[ACCEPT $codehash{$geoname_id_cc{$country}}] \" --nflog-group 2\n";
+    print $fh "$iptables -A $filter_header -j NFLOG --nflog-prefix=\"[ALLOW $codehash{$geoname_id_cc{$country}}] \" --nflog-group 2\n";
     print $fh "$iptables -A $filter_header -j ACCEPT\n";
     print $fh "$iptables -A DENY_FILTER -p tcp -m set --match-set $geoname_id_cc{$country} src $limit -j $filter_header\n";
 }
