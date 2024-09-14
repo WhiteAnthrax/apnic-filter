@@ -196,6 +196,9 @@ if (!-d "$dirname/data") {
 open my $fh, '>', "$dirname/data/$year/$date-iptables";
 print "#!/bin/sh\n\n";
 ### FILTER初期化
+# allow from localhost
+print $fh "$iptables -D INPUT -i lo -j ACCEPT\n";
+print $fh "$iptables -A INPUT -i lo -j ACCEPT\n";
 #print "*** DENY_FILTERをFlush(iptables -F DENY_FILTER)\n";
 print $fh "$iptables -D INPUT -m conntrack --ctstate NEW -j DENY_FILTER\n";
 print $fh "$iptables -F DENY_FILTER\n";
@@ -207,11 +210,19 @@ print $fh "$iptables -N CLOSED_PORT_ACCESS_CHECK\n";
 print $fh "$iptables -F INVALID_LOG\n";
 print $fh "$iptables -X INVALID_LOG\n";
 print $fh "$iptables -N INVALID_LOG\n";
+### closed_port_accessリストに登録されてたらアクセス禁止する
+print $fh "$iptables -D INPUT -m recent --name closed_port_access --rcheck -j NFLOG --nflog-prefix=\"[blocked by closed_port_access list] \" --nflog-group 2\n";
+print $fh "$iptables -D INPUT -m recent --name closed_port_access --rcheck -j DROP\n";
+print $fh "$iptables -A INPUT -m recent --name closed_port_access --rcheck -j NFLOG --nflog-prefix=\"[blocked by closed_port_access list] \" --nflog-group 2\n";
+print $fh "$iptables -A INPUT -m recent --name closed_port_access --rcheck -j DROP\n";
+###
 print $fh "$iptables -D INPUT -m state --state NEW -j CLOSED_PORT_ACCESS_CHECK\n";
 print $fh "$iptables -A INPUT -m state --state NEW -j CLOSED_PORT_ACCESS_CHECK\n";
 print $fh "$iptables -D INPUT -m state --state INVALID -j INVALID_LOG\n";
 print $fh "$iptables -A INPUT -m state --state INVALID -j INVALID_LOG\n";
 print $fh "$iptables -A INPUT -m conntrack --ctstate NEW -j DENY_FILTER\n";
+
+
 
 # 現在 listening しているポートのリストを取得
 @LISTENING_TCP_PORTS=`ss -tln | awk 'NR>1 {print \$4}' | awk -F: '{print \$NF}' | sort -un`;
@@ -227,6 +238,8 @@ foreach my $port (@LISTENING_UDP_PORTS) {
 }
 # それ以外はlogging
 print $fh "$iptables -A CLOSED_PORT_ACCESS_CHECK -m limit --limit 60/min -j NFLOG --nflog-prefix=\"[closed port access2] \" --nflog-group 2\n";
+# 今後blockするために、closed_port_accessリストに登録する
+print $fh "$iptables -A CLOSED_PORT_ACCESS_CHECK -m recent --set --name closed_port_access\n";
 # DROP
 print $fh "$iptables -A CLOSED_PORT_ACCESS_CHECK -j DROP\n";
 
@@ -239,7 +252,6 @@ print $fh "echo \"*** FILTER初期化中: PortScanner\"\n";
 print $fh "$iptables -N PortScanner\n";
 print $fh "$iptables -F PortScanner\n";
 print $fh "$iptables -A PortScanner -j NFLOG --nflog-prefix=\"[Drop PortScanner] \" --nflog-group 2\n";
-print $fh "$iptables -A PortScanner -j DROP\n";
 print $fh "$iptables -A DENY_FILTER -p tcp -m set --match-set PortScanner src -j PortScanner\n";
 
 foreach $country (@deny_country) {
