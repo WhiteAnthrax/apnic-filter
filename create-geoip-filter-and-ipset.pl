@@ -32,11 +32,13 @@ if (-f "$conf_file") {
 }
 
 $iptables = $config->{iptables};
-$limit = '-m multiport --dport ' . $config->{limit_port};
+#$limit = '-m multiport --dport ' . $config->{limit_port};
+$limit = '-m set --match-set limitports dst';
 $allow_list = $config->{allow_country};
 $ipset = $config->{ipset};
 $unzip = $config->{unzip};
 $curl = $config->{curl};
+
 
 my $geoip_uri = 'https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country-CSV&license_key=' . $config->{geolite2_license} . '&suffix=zip';
 
@@ -55,6 +57,30 @@ if (!-d "$dirname/data") {
 if (!-d "$dirname/data/$year") {
     mkdir "$dirname/data/$year", 0755;
 }
+
+
+# create ipset limitports
+open my $fh, '>', "$dirname/data/$year/$date-update-ipset";
+
+print $fh "#!/bin/sh\n\n";
+
+print $fh "echo \"*** portlist limit ipset 登録中:\"\n";
+print $fh "$ipset create -exist limitports-temp bitmap:port range 0-65535\n";
+print $fh "$ipset flush limitports-temp\n";
+
+foreach $line (split(/,/, $config->{limit_port})) {
+    chomp($line);
+    print "port $line\n";
+    print $fh "$ipset add limitports-temp $line\n";
+}
+print $fh "$ipset list limitports > /dev/null 2>&1\n";
+print $fh 'if [ $? -eq 0 ]; then' . "\n";
+print $fh "  $ipset swap limitports-temp limitports\n";
+print $fh "  $ipset destroy limitports-temp\n";
+print $fh "else\n";
+print $fh "  $ipset rename limitports-temp limitports\n";
+print $fh "fi\n";
+close $fh;
 
 ### process geolite2
 print "*** download geoip database\n";
@@ -290,7 +316,7 @@ close $fh;
 
 ### aggregate
 print "*** aggregate中 ***\n";
-open my $fh, '>', "$dirname/data/$year/$date-update-ipset";
+open my $fh, '>>', "$dirname/data/$year/$date-update-ipset";
 print $fh "#!/bin/sh\n\n";
 close $fh;
 
